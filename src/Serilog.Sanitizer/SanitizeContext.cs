@@ -9,6 +9,13 @@ using System.Text.RegularExpressions;
 
 namespace Serilog.Sanitizer
 {
+    public class IgnoredPropertyList
+    {
+        public StringComparison Comparison { get; set; }
+
+        public string[] Properties { get; set; }
+    }
+
     public class SanitizeContext
     {
         private readonly LoggerConfiguration _configuration;
@@ -29,7 +36,7 @@ namespace Serilog.Sanitizer
             typeof(TypeInfo)
         };
 
-        public List<string> IgnoredProperties { get; set; } = new List<string>();
+        public List<IgnoredPropertyList> IgnoredProperties { get; set; } = new List<IgnoredPropertyList>();
 
 
         public bool TryGetValue(Type model, object value, object property, object propertyValue, out object sanitized)
@@ -53,7 +60,7 @@ namespace Serilog.Sanitizer
 
             object sanitizeResult = null;
 
-            if(valueExpression is Func<string, string> sanitizeFunc)
+            if (valueExpression is Func<string, string> sanitizeFunc)
             {
                 sanitizeResult = sanitizeFunc($"{propertyValue}");
             }
@@ -61,7 +68,7 @@ namespace Serilog.Sanitizer
             {
                 sanitizeResult = lambdaExpression.Compile().DynamicInvoke(value);
             }
-            else if(valueExpression is Delegate func)
+            else if (valueExpression is Delegate func)
             {
                 sanitizeResult = func.DynamicInvoke(value);
             }
@@ -107,13 +114,21 @@ namespace Serilog.Sanitizer
             return true;
         }
 
-
-        internal void AddIgnoredProp(string[] props)
+        internal void AddIgnoredProp(StringComparison comparison, string[] props)
         {
-            IgnoredProperties.AddRange(
-                props.Where(x => !IgnoredProperties.Contains(x))
-            );
+            IgnoredProperties.Add(new IgnoredPropertyList
+            {
+                Comparison = comparison,
+                Properties = props
+            });
         }
+
+        //internal void AddIgnoredProp(string[] props)
+        //{
+        //    IgnoredProperties.Properties.AddRange(
+        //        props.Where(x => !IgnoredProperties.Properties.Contains(x))
+        //    );
+        //}
 
         public void AddSanitizeViaRegex(string pattern, string value)
         {
@@ -205,7 +220,7 @@ namespace Serilog.Sanitizer
 
         public bool IsIgnoredProp(string propName)
         {
-            return IgnoredProperties.Contains(propName);
+            return IgnoredProperties.Any(list => list.Properties.Any(p => p.Equals(propName, list.Comparison)));
         }
 
         public LoggerConfiguration GetConfiguration()

@@ -8,6 +8,39 @@ namespace Serilog.Sanitizer.Tests
 {
     public class SanitizerTests
     {
+        [Fact]
+        public void SanitizeViaExpression_ShouldBe_SanitizeCardInformation_And_RemoveExpireProps_When_SanitizeViaLambda()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .SanitizeViaRegex(new[] { "[Cc]vv", "[Cc]vc", "[Cc]vv" }, "***")
+                                .SanitizeViaRegex(new[] { "[Cc]ard", "[Cc]ard[Nn]umber", "[Pp]an", "[Cc]ard[Nn]o" }, x => string.Concat(x.Substring(0, 6), "******", x.Substring(12, 4)))
+                                .IgnoreProp(StringComparison.OrdinalIgnoreCase, "expmonth", "expyear", "expire", "expireYear", "expireMonth")
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = new { CardNumber = "4355084355084358", Cvv = "000", ExpireMonth = "12", ExpireYear = "2026" };
+
+            logger.Information(
+                    "Sensitive Information {@p}",
+                    model
+            );
+
+            var properties = (events[0].Properties["p"] as StructureValue)?.Properties.ToDictionary(x => x.Name, x => ((ScalarValue)x.Value).Value);
+
+            object cardNumber = properties["CardNumber"];
+            object Cvv = properties["Cvv"];
+
+            Assert.Equal("435508******4358", cardNumber.ToString());
+            Assert.Equal("***", Cvv.ToString());
+            Assert.False(properties.ContainsKey("ExpireMonth"));
+            Assert.False(properties.ContainsKey("ExpireYear"));
+        }
+
+        [Fact]
         public void SanitizeViaExpression_ShouldBe_SanitizePersonProperties_When_SanitizeViaLambda()
         {
             List<LogEvent> events = new List<LogEvent>();
@@ -52,7 +85,7 @@ namespace Serilog.Sanitizer.Tests
             var logger = new LoggerConfiguration()
                             .Sanitizer()
                                 .Typed<Person>()
-                                    .Sanitize(x => x.Name, x => string.Concat(x.Substring(0,2),"***"))
+                                    .Sanitize(x => x.Name, x => string.Concat(x.Substring(0, 2), "***"))
                                     .Sanitize(x => x.Surname, x => string.Concat(x.Substring(0, 2), "***"))
                                     .Sanitize(x => x.Email, x => string.Concat(x.Substring(0, 2), "***"))
                                     .Sanitize(x => x.Phone, x => string.Concat(x.Substring(0, 2), "***"))

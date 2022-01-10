@@ -20,9 +20,16 @@ namespace Serilog.Sanitizer
             _loggerConfiguration = loggerConfiguration;
         }
 
+        public SanitizeConfiguration IgnoreProp(StringComparison comparison, params string[] props)
+        {
+            _context.AddIgnoredProp(comparison, props);
+
+            return this;
+        }
+
         public SanitizeConfiguration IgnoreProp(params string[] props)
         {
-            _context.AddIgnoredProp(props);
+            _context.AddIgnoredProp(StringComparison.CurrentCulture, props);
 
             return this;
         }
@@ -42,6 +49,26 @@ namespace Serilog.Sanitizer
             return this;
         }
 
+        public SanitizeConfiguration SanitizeViaRegex(string[] patterns, string value)
+        {
+            foreach (var pattern in patterns)
+            {
+                _context.AddSanitizeViaRegex(pattern, value);
+            }
+
+            return this;
+        }
+
+        public SanitizeConfiguration SanitizeViaRegex(string[] patterns, Func<string, string> value)
+        {
+            foreach (var pattern in patterns)
+            {
+                _context.AddSanitizeViaRegex(pattern, value);
+            }
+
+            return this;
+        }
+
         public SanitizeConfiguration Sanitize(string prop, string value)
         {
             _context.AddSanitizeProp(prop, value);
@@ -52,6 +79,26 @@ namespace Serilog.Sanitizer
         public SanitizeConfiguration Sanitize(string prop, Func<string, string> value)
         {
             _context.AddSanitizeProp(prop, value);
+
+            return this;
+        }
+
+        public SanitizeConfiguration Sanitize(string[] props, string value)
+        {
+            foreach (var prop in props)
+            {
+                _context.AddSanitizeProp(prop, value);
+            }
+
+            return this;
+        }
+
+        public SanitizeConfiguration Sanitize(string[] props, Func<string, string> value)
+        {
+            foreach (var prop in props)
+            {
+                _context.AddSanitizeProp(prop, value);
+            }
 
             return this;
         }
