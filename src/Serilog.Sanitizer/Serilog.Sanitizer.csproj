@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFrameworks>net45;net46;net47;net48;netcoreapp2.0;netcoreapp2.1;netcoreapp3.0;netcoreapp3.1;net5.0</TargetFrameworks>
+    <Authors>Emre Çağlar</Authors>
+    <Description>Sanitize log, sensetive values extension for Serilog</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>serilog sanitizelog logging sensetivedata log</PackageTags>
+    <RepositoryUrl>https://github.com/emrecaglar/Serilog.Sanitizer</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/emrecaglar/Serilog.Sanitizer</PackageProjectUrl>
+    <PackageId>Serilog.Sanitize</PackageId>
+    <Product>Log Sanitizer</Product>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
