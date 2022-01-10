@@ -8,7 +8,6 @@ namespace Serilog.Sanitizer.Tests
 {
     public class SanitizerTests
     {
-        [Fact]
         public void SanitizeViaExpression_ShouldBe_SanitizePersonProperties_When_SanitizeViaLambda()
         {
             List<LogEvent> events = new List<LogEvent>();
@@ -16,7 +15,7 @@ namespace Serilog.Sanitizer.Tests
             var logger = new LoggerConfiguration()
                             .Sanitizer()
                                 .Typed<Person>()
-                                    .Sanitize(x => x.Name, x => string.Concat(x.Substring(0,2),"***"))
+                                    .Sanitize(x => x.Name, x => string.Concat(x.Substring(0, 2), "***"))
                                     .Sanitize(x => x.Surname, x => string.Concat(x.Substring(0, 2), "***"))
                                     .Sanitize(x => x.Email, x => string.Concat(x.Substring(0, 2), "***"))
                                     .Sanitize(x => x.Phone, x => string.Concat(x.Substring(0, 2), "***"))
@@ -43,6 +42,54 @@ namespace Serilog.Sanitizer.Tests
             Assert.Equal(model.Surname.Substring(0, 2) + "***", surname.ToString());
             Assert.Equal(model.Phone.Substring(0, 2) + "***", phone.ToString());
             Assert.Equal(model.Email.Substring(0, 2) + "***", email.ToString());
+        }
+
+        [Fact]
+        public void SanitizeViaExpression_ShouldBe_SanitizePersonProperties_And_SkipOtherType_When_SanitizeViaLambda()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .Typed<Person>()
+                                    .Sanitize(x => x.Name, x => string.Concat(x.Substring(0,2),"***"))
+                                    .Sanitize(x => x.Surname, x => string.Concat(x.Substring(0, 2), "***"))
+                                    .Sanitize(x => x.Email, x => string.Concat(x.Substring(0, 2), "***"))
+                                    .Sanitize(x => x.Phone, x => string.Concat(x.Substring(0, 2), "***"))
+                                    .Continue()
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = new Person { Name = "Bruce", Surname = "Lee", Email = "brucelee@gmai.com", Phone = "5076589898" };
+            var company = new Company { Name = "Foo corp.", Email = "foo@bar.com", Phone = "2226663355" };
+
+            logger.Information(
+                    "Sensitive Information {@p1} {@p2}",
+                    model,
+                    company
+            );
+
+            var p1_properties = (events[0].Properties["p1"] as StructureValue)?.Properties.ToDictionary(x => x.Name, x => ((ScalarValue)x.Value).Value);
+            var p2_properties = (events[0].Properties["p2"] as StructureValue)?.Properties.ToDictionary(x => x.Name, x => ((ScalarValue)x.Value).Value);
+
+            object p1_name = p1_properties["Name"];
+            object p1_surname = p1_properties["Surname"];
+            object p1_phone = p1_properties["Phone"];
+            object p1_email = p1_properties["Email"];
+
+            object p2_name = p2_properties["Name"];
+            object p2_phone = p2_properties["Phone"];
+            object p2_email = p2_properties["Email"];
+
+            Assert.Equal(model.Name.Substring(0, 2) + "***", p1_name.ToString());
+            Assert.Equal(model.Surname.Substring(0, 2) + "***", p1_surname.ToString());
+            Assert.Equal(model.Phone.Substring(0, 2) + "***", p1_phone.ToString());
+            Assert.Equal(model.Email.Substring(0, 2) + "***", p1_email.ToString());
+
+            Assert.Equal(company.Name, p2_name.ToString());
+            Assert.Equal(company.Phone, p2_phone.ToString());
+            Assert.Equal(company.Email, p2_email.ToString());
         }
 
         [Fact]
@@ -205,6 +252,15 @@ namespace Serilog.Sanitizer.Tests
         public string Surname { get; set; }
 
         public string Phone { get; set; }
+
+        public string Email { get; set; }
+    }
+
+    class Company
+    {
+        public string Phone { get; set; }
+
+        public string Name { get; set; }
 
         public string Email { get; set; }
     }
