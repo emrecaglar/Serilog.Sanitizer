@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,10 @@ namespace Serilog.Sanitizer.PropertyFinder
             else if (property is string)
             {
                 return _regex.IsMatch(property.ToString());
+            }
+            else if(property is KeyValuePair<string, LogEventPropertyValue> p)
+            {
+                return _regex.IsMatch(p.Key);
             }
 
             return false;

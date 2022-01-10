@@ -8,70 +8,74 @@ using System.Threading.Tasks;
 
 namespace Serilog.Sanitizer
 {
-    public class SanitizingConfiguration
+    public class SanitizeConfiguration
     {
         private readonly SanitizeContext _context;
         private readonly LoggerConfiguration _loggerConfiguration;
 
-        public SanitizingConfiguration(LoggerConfiguration loggerConfiguration)
+        public SanitizeConfiguration(LoggerConfiguration loggerConfiguration)
         {
             _context = new SanitizeContext(loggerConfiguration);
 
             _loggerConfiguration = loggerConfiguration;
         }
 
-        public SanitizingConfiguration IgnoreProp(params string[] props)
+        public SanitizeConfiguration IgnoreProp(params string[] props)
         {
             _context.AddIgnoredProp(props);
 
             return this;
         }
 
-        public SanitizingConfiguration SanitizeViaRegex(string pattern, string value)
+
+        public SanitizeConfiguration SanitizeViaRegex(string pattern, string value)
         {
             _context.AddSanitizeViaRegex(pattern, value);
 
             return this;
         }
 
-        public SanitizingConfiguration SanitizeViaRegex(string pattern, Func<string, string> value)
+        public SanitizeConfiguration SanitizeViaRegex(string pattern, Func<string, string> value)
         {
             _context.AddSanitizeViaRegex(pattern, value);
 
             return this;
         }
 
-        public SanitizingConfiguration Sanitize(string prop, string value)
+        public SanitizeConfiguration Sanitize(string prop, string value)
         {
             _context.AddSanitizeProp(prop, value);
 
             return this;
         }
 
-        public SanitizingConfiguration Sanitize(string prop, Func<string, string> value)
+        public SanitizeConfiguration Sanitize(string prop, Func<string, string> value)
         {
             _context.AddSanitizeProp(prop, value);
 
             return this;
         }
 
-        public SanitizingConfiguration Sanitize<TModel>(Expression<Func<TModel, object>> prop, string value)
+        public SanitizeConfiguration Sanitize<TModel>(Expression<Func<TModel, object>> prop, string value)
         {
             _context.AddTypedSanitize(prop, value);
 
             return this;
         }
 
-        public SanitizingConfiguration Sanitize<TModel>(Expression<Func<TModel, object>> prop, Func<TModel, string> value)
+        public SanitizeConfiguration Sanitize<TModel>(Expression<Func<TModel, object>> prop, Func<TModel, string> value)
         {
             _context.AddTypedSanitize(prop, value);
 
             return this;
         }
+
 
         public LoggerConfiguration Build()
         {
-            _context.AddDestructure(new SanitizingDestructurePolicy(_context, _loggerConfiguration));
+            _context.AddDestructure(new SanitizeDestructurePolicy(_context, _loggerConfiguration));
+
+            _context.AddEnrich(new SanitizeEnrich(_context, _loggerConfiguration));
 
             return _context.GetConfiguration();
         }

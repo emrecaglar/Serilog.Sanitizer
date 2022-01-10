@@ -4,9 +4,9 @@ namespace Serilog
 {
     public static class SerilogEcozumPackageSanitizeExtensions
     {
-        public static SanitizingConfiguration Sanitizer(this LoggerConfiguration configuration)
+        public static SanitizeConfiguration Sanitizer(this LoggerConfiguration configuration)
         {
-            return new SanitizingConfiguration(configuration);
+            return new SanitizeConfiguration(configuration);
         }
     }
 }

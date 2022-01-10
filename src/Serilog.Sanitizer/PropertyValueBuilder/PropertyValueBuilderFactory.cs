@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
+using Serilog.Events;
+using System.Collections.Generic;
 
 #if NETCOREAPP2_0_OR_GREATER
 using Microsoft.AspNetCore.Http;
@@ -40,6 +42,11 @@ namespace Serilog.Sanitizer.PropertyValueBuilder
             {
                 return new NameValueCollectionPropertyValueBuilder(this, _context, _destructorLimits);
             }
+            else if(value is KeyValuePair<string, LogEventPropertyValue>)
+            {
+                return new SerilogPropertyValueBuilder(_context);
+            }
+
             return new StructureObjectPropertyValueBuilder(this, _context, _destructorLimits);
         }
     }

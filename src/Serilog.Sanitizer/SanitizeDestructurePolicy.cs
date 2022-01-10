@@ -4,12 +4,12 @@ using Serilog.Sanitizer.PropertyValueBuilder;
 
 namespace Serilog.Sanitizer
 {
-    public class SanitizingDestructurePolicy : IDestructuringPolicy
+    public class SanitizeDestructurePolicy : IDestructuringPolicy
     {
         private readonly SanitizeContext _context;
         private readonly LoggerConfiguration _loggerConfiguration;
 
-        public SanitizingDestructurePolicy(SanitizeContext context, LoggerConfiguration loggerConfiguration)
+        public SanitizeDestructurePolicy(SanitizeContext context, LoggerConfiguration loggerConfiguration)
         {
             _context = context;
             _loggerConfiguration = loggerConfiguration;

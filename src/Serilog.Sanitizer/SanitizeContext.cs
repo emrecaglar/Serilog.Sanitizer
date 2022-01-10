@@ -193,6 +193,11 @@ namespace Serilog.Sanitizer
             _configuration.Destructure.With(policy);
         }
 
+        internal void AddEnrich(SanitizeEnrich sanitizeEnrich)
+        {
+            _configuration.Enrich.With(sanitizeEnrich);
+        }
+
         public bool IsIgnoredType(Type propertyType)
         {
             return IgnoredTypes.Contains(propertyType) && IgnoredTypes.Any(x => x.BaseType == propertyType);
