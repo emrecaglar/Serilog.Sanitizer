@@ -23,19 +23,19 @@ namespace Serilog.Sanitizer
 
         public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
         {
-            foreach (var property in logEvent.Properties)
+            logEvent.Properties.ToList().ForEach(property => 
             {
                 var propertyValueBuilderFactory = new PropertyValueBuilderFactory(
                    _context,
                    DestructorLimits.GetFromLoggerConfiguration(_loggerConfiguration)
-               );
+                );
 
                 var propertyValueBuilder = propertyValueBuilderFactory.CreatePropertyValueBuilder(property);
 
                 var result = propertyValueBuilder.CreateValue(property);
 
                 logEvent.AddOrUpdateProperty(new LogEventProperty(property.Key, result));
-            }
+            });
         }
     }
 }

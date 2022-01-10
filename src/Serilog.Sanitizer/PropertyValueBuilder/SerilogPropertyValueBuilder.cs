@@ -27,12 +27,17 @@ namespace Serilog.Sanitizer.PropertyValueBuilder
 
                 var property = (KeyValuePair<string, LogEventPropertyValue>)value;
 
-                if (_context.TryGetValue(property, property.Key, ((ScalarValue)property.Value).Value, out object sanitized))
+                if(property.Value is ScalarValue)
                 {
-                    return new ScalarValue(sanitized);
+                    if (_context.TryGetValue(property, property.Key, ((ScalarValue)property.Value).Value, out object sanitized))
+                    {
+                        return new ScalarValue(sanitized);
+                    }
+
+                    return (ScalarValue)property.Value;
                 }
 
-                return (ScalarValue)property.Value;
+                return property.Value;
             }
             catch
             {
