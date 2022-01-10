@@ -151,7 +151,7 @@ namespace Serilog.Sanitizer
             });
         }
 
-        public void AddTypedSanitize<TModel>(Expression<Func<TModel, object>> prop, string value)
+        public void AddTypedSanitize<TModel, TProperty>(Expression<Func<TModel, TProperty>> prop, string value)
         {
             if (!ByModel.ContainsKey(typeof(TModel)))
             {
@@ -165,7 +165,7 @@ namespace Serilog.Sanitizer
             });
         }
 
-        public void AddTypedSanitize<TModel>(Expression<Func<TModel, object>> prop, Func<TModel, string> value)
+        public void AddTypedSanitize<TModel, TProperty>(Expression<Func<TModel, TProperty>> prop, Func<TProperty, string> value)
         {
             if (!ByModel.ContainsKey(typeof(TModel)))
             {

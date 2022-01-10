@@ -56,19 +56,30 @@ namespace Serilog.Sanitizer
             return this;
         }
 
-        public SanitizeConfiguration Sanitize<TModel>(Expression<Func<TModel, object>> prop, string value)
+        public SanitizeType<TModel> Typed<TModel>()
         {
-            _context.AddTypedSanitize(prop, value);
-
-            return this;
+            return new SanitizeType<TModel>(_context, this);
         }
 
-        public SanitizeConfiguration Sanitize<TModel>(Expression<Func<TModel, object>> prop, Func<TModel, string> value)
-        {
-            _context.AddTypedSanitize(prop, value);
+        //public SanitizeConfiguration Sanitize<TModel>(string value, params Expression<Func<TModel, object>>[] props)
+        //{
+        //    foreach (var prop in props)
+        //    {
+        //        _context.AddTypedSanitize(prop, value); 
+        //    }
 
-            return this;
-        }
+        //    return this;
+        //}
+
+        //public SanitizeConfiguration Sanitize<TModel>(Func<TModel, string> value, params Expression<Func<TModel, object>>[] props)
+        //{
+        //    foreach (var prop in props)
+        //    {
+        //        _context.AddTypedSanitize(prop, value); 
+        //    }
+
+        //    return this;
+        //}
 
 
         public LoggerConfiguration Build()

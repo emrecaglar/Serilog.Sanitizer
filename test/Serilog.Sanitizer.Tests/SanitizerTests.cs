@@ -15,10 +15,12 @@ namespace Serilog.Sanitizer.Tests
 
             var logger = new LoggerConfiguration()
                             .Sanitizer()
-                                .Sanitize<Person>(x => x.Name, person => string.Concat(person.Name.Substring(0, 2), "***"))
-                                .Sanitize<Person>(x => x.Surname, person => string.Concat(person.Surname.Substring(0, 2), "***"))
-                                .Sanitize<Person>(x => x.Email, person => string.Concat(person.Email.Substring(0, 2), "***"))
-                                .Sanitize<Person>(x => x.Phone, person => string.Concat(person.Phone.Substring(0, 2), "***"))
+                                .Typed<Person>()
+                                    .Sanitize(x => x.Name, x => string.Concat(x.Substring(0,2),"***"))
+                                    .Sanitize(x => x.Surname, x => string.Concat(x.Substring(0, 2), "***"))
+                                    .Sanitize(x => x.Email, x => string.Concat(x.Substring(0, 2), "***"))
+                                    .Sanitize(x => x.Phone, x => string.Concat(x.Substring(0, 2), "***"))
+                                    .Continue()
                             .Build()
                             .WriteTo.Sink(new SerilogStubSink(events))
                             .CreateLogger();
@@ -81,6 +83,7 @@ namespace Serilog.Sanitizer.Tests
             var logger = new LoggerConfiguration()
                             .Sanitizer()
                                 .SanitizeViaRegex("[Pp]hone", phone => string.Concat(phone.Substring(0, 4), "****", phone.Substring(8, 2)))
+                                .SanitizeViaRegex("[Nn]ame", x => x.Substring(0, 2) + "****")
                             .Build()
                             .WriteTo.Sink(new SerilogStubSink(events))
                             .CreateLogger();
