@@ -9,12 +9,12 @@ var logger = new LoggerConfiguration()
                     .Sanitizer()
                         .SanitizeViaRegex(new[] { "[Cc]vv", "[Cc]vc", "[Cc]vv" }, "***")
                         .SanitizeViaRegex(new[] { "[Cc]ard", "[Cc]ard[Nn]umber", "[Pp]an", "[Cc]ard[Nn]o" }, x => string.Concat(x.Substring(0, 6), "******", x.Substring(12, 4)))
-                        .IgnoreProp(StringComparison.OrdinalIgnoreCase, "expmonth", "expyear", "expire", "expireYear", "expireMonth")
+                        .IgnoreProp(ignoreCase: true, "expmonth", "expyear", "expire", "expireYear", "expireMonth")
                         .Build()
                     .WriteTo.Debug()
                     .CreateLogger();
 
-            var model = new { CardNumber = "4355084355084358", Cvv = "000", ExpireMonth = "12", ExpireYear = "2026" };
+var model = new { CardNumber = "4355084355084358", Cvv = "000", ExpireMonth = "12", ExpireYear = "2026" };
 
 logger.Information(
         "Sensitive Information {@p}",
