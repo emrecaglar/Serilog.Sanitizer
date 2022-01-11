@@ -11,6 +11,9 @@
     <PackageProjectUrl>https://github.com/emrecaglar/Serilog.Sanitizer</PackageProjectUrl>
     <PackageId>Serilog.Sanitize</PackageId>
     <Product>Log Sanitizer</Product>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <PackageReleaseNotes />
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
