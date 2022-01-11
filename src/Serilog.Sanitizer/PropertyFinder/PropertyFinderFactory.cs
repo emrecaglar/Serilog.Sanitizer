@@ -16,18 +16,18 @@ namespace Serilog.Sanitizer.PropertyFinder
             _value = value;
         }
 
-        public IPropertyFinder CreateFinder(object finder)
+        public IPropertyFinder CreateFinder(object finder, PropertyFinderConfigration configration)
         {
             switch (finder)
             {
                 case PropertyInfo propertyInfo:
-                    return new ByPropertyInfo(propertyInfo);
+                    return new ByPropertyInfo(propertyInfo, configration);
                 case Func<PropertyInfo, bool> predicate:
-                    return new ByPredicate(_value, predicate);
+                    return new ByPredicate(_value, predicate, configration);
                 case string propertyName:
-                    return new ByPropertyName(_value, propertyName);
+                    return new ByPropertyName(_value, propertyName, configration);
                 case Regex regex:
-                    return new ByRegex(_value, regex);
+                    return new ByRegex(_value, regex, configration);
             }
 
             return null;

@@ -10,11 +10,13 @@ namespace Serilog.Sanitizer.PropertyFinder
     {
         private readonly object _value;
         private readonly Func<PropertyInfo, bool> _predicate;
+        private readonly PropertyFinderConfigration _configration;
 
-        public ByPredicate(object value, Func<PropertyInfo, bool> predicate)
+        public ByPredicate(object value, Func<PropertyInfo, bool> predicate, PropertyFinderConfigration configration)
         {
             _value = value;
             _predicate = predicate;
+            _configration = configration;
         }
 
         public bool Equal(object property)

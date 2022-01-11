@@ -9,6 +9,35 @@ namespace Serilog.Sanitizer.Tests
     public class SanitizerTests
     {
         [Fact]
+        public void SanitizeViaExpression_ShouldBe_SanitizeIgnoreCaseRegexOptions_When_SanitizeViaLambda()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .SanitizeViaRegex(new[] { "cvv", "cvc", "cvv" }, "***", ignoreCase: true)
+                                .SanitizeViaRegex("expireYear", "****", ignoreCase: true)
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = new { Cvv = "000", ExpireYear = "2026" };
+
+            logger.Information(
+                    "Sensitive Information {@p}",
+                    model
+            );
+
+            var properties = (events[0].Properties["p"] as StructureValue)?.Properties.ToDictionary(x => x.Name, x => ((ScalarValue)x.Value).Value);
+
+            object cvv = properties["Cvv"];
+            object expYear = properties["ExpireYear"];
+
+            Assert.Equal("***", cvv.ToString());
+            Assert.Equal("****", expYear.ToString());
+        }
+
+        [Fact]
         public void SanitizeViaExpression_ShouldBe_SanitizeCardInformation_And_RemoveExpireProps_When_SanitizeViaLambda()
         {
             List<LogEvent> events = new List<LogEvent>();
@@ -17,7 +46,7 @@ namespace Serilog.Sanitizer.Tests
                             .Sanitizer()
                                 .SanitizeViaRegex(new[] { "[Cc]vv", "[Cc]vc", "[Cc]vv" }, "***")
                                 .SanitizeViaRegex(new[] { "[Cc]ard", "[Cc]ard[Nn]umber", "[Pp]an", "[Cc]ard[Nn]o" }, x => string.Concat(x.Substring(0, 6), "******", x.Substring(12, 4)))
-                                .IgnoreProp(StringComparison.OrdinalIgnoreCase, "expmonth", "expyear", "expire", "expireYear", "expireMonth")
+                                .IgnoreProp(ignoreCase: true, "expmonth", "expyear", "expire", "expireYear", "expireMonth")
                             .Build()
                             .WriteTo.Sink(new SerilogStubSink(events))
                             .CreateLogger();

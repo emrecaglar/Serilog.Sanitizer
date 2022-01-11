@@ -13,30 +13,32 @@ namespace Serilog.Sanitizer.PropertyFinder
     {
         private readonly object _value;
         private readonly string _propertyName;
+        private readonly PropertyFinderConfigration _configration;
 
-        public ByPropertyName(object value, string propertyName)
+        public ByPropertyName(object value, string propertyName, PropertyFinderConfigration configration)
         {
             _value = value;
             _propertyName = propertyName;
+            _configration = configration;
         }
 
         public bool Equal(object property)
         {
             if (property is JProperty jprop)
             {
-                return jprop.Name == _propertyName;
+                return jprop.Name.Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
             }
             else if (property is PropertyInfo prop && (_value == null || (prop.DeclaringType == _value.GetType())))
             {
-                return prop.Name == _propertyName;
+                return prop.Name.Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
             }
             else if (property is string)
             {
-                return property.ToString() == _propertyName;
+                return property.ToString().Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
             }
             else if (property is KeyValuePair<string, LogEventPropertyValue> p)
             {
-                return p.Key == _propertyName;
+                return p.Key.Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
             }
 
             return false;

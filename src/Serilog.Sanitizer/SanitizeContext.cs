@@ -114,11 +114,11 @@ namespace Serilog.Sanitizer
             return true;
         }
 
-        internal void AddIgnoredProp(StringComparison comparison, string[] props)
+        internal void AddIgnoredProp(string[] props, bool ignoreCase = false)
         {
             IgnoredProperties.Add(new IgnoredPropertyList
             {
-                Comparison = comparison,
+                Comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture,
                 Properties = props
             });
         }
@@ -130,38 +130,38 @@ namespace Serilog.Sanitizer
         //    );
         //}
 
-        public void AddSanitizeViaRegex(string pattern, string value)
+        public void AddSanitizeViaRegex(string pattern, string value, bool ignoreCase = false)
         {
             ByExpression.Add(new SanitizeDefinition
             {
-                Finder = x => new PropertyFinderFactory(null).CreateFinder(new Regex(pattern)),
+                Finder = x => new PropertyFinderFactory(null).CreateFinder(new Regex(pattern, ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None), new PropertyFinderConfigration() { IgnoreCase = ignoreCase }),
                 ValueExpression = () => value
             });
         }
 
-        public void AddSanitizeViaRegex(string pattern, Func<string, string> value)
+        public void AddSanitizeViaRegex(string pattern, Func<string, string> value, bool ignoreCase = false)
         {
             ByExpression.Add(new SanitizeDefinition
             {
-                Finder = x => new PropertyFinderFactory(null).CreateFinder(new Regex(pattern)),
+                Finder = x => new PropertyFinderFactory(null).CreateFinder(new Regex(pattern, ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None), new PropertyFinderConfigration() { IgnoreCase = ignoreCase }),
                 ValueExpression = () => value
             });
         }
 
-        public void AddSanitizeProp(string prop, string value)
+        public void AddSanitizeProp(string prop, string value, bool ignoreCase)
         {
             ByExpression.Add(new SanitizeDefinition
             {
-                Finder = x => new PropertyFinderFactory(null).CreateFinder(prop),
+                Finder = x => new PropertyFinderFactory(null).CreateFinder(prop, new PropertyFinderConfigration() { IgnoreCase = ignoreCase }),
                 ValueExpression = () => value
             });
         }
 
-        public void AddSanitizeProp(string prop, Func<string, string> value)
+        public void AddSanitizeProp(string prop, Func<string, string> value, bool ignoreCase = false)
         {
             ByExpression.Add(new SanitizeDefinition
             {
-                Finder = x => new PropertyFinderFactory(null).CreateFinder(prop),
+                Finder = x => new PropertyFinderFactory(null).CreateFinder(prop, new PropertyFinderConfigration() { IgnoreCase = ignoreCase }),
                 ValueExpression = () => value
             });
         }
@@ -175,7 +175,7 @@ namespace Serilog.Sanitizer
 
             ByModel[typeof(TModel)].Add(new SanitizeDefinition
             {
-                Finder = x => new PropertyFinderFactory(x).CreateFinder((PropertyInfo)((MemberExpression)prop.Body).Member),
+                Finder = x => new PropertyFinderFactory(x).CreateFinder((PropertyInfo)((MemberExpression)prop.Body).Member, new PropertyFinderConfigration()),
                 ValueExpression = () => value
             });
         }
@@ -189,7 +189,7 @@ namespace Serilog.Sanitizer
 
             ByModel[typeof(TModel)].Add(new SanitizeDefinition
             {
-                Finder = x => new PropertyFinderFactory(x).CreateFinder((PropertyInfo)((MemberExpression)prop.Body).Member),
+                Finder = x => new PropertyFinderFactory(x).CreateFinder((PropertyInfo)((MemberExpression)prop.Body).Member, new PropertyFinderConfigration()),
                 ValueExpression = () => value
             });
         }

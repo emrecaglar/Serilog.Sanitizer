@@ -13,11 +13,13 @@ namespace Serilog.Sanitizer.PropertyFinder
     {
         private readonly object _value;
         private readonly Regex _regex;
+        private readonly PropertyFinderConfigration _configration;
 
-        public ByRegex(object value, Regex regex)
+        public ByRegex(object value, Regex regex, PropertyFinderConfigration configration)
         {
             _value = value;
             _regex = regex;
+            _configration = configration;
         }
 
         public bool Equal(object property)

@@ -9,10 +9,12 @@ namespace Serilog.Sanitizer.PropertyFinder
     public class ByPropertyInfo : IPropertyFinder
     {
         private readonly PropertyInfo _property;
+        private readonly PropertyFinderConfigration _configration;
 
-        public ByPropertyInfo(PropertyInfo property)
+        public ByPropertyInfo(PropertyInfo property, PropertyFinderConfigration configration)
         {
             _property = property;
+            _configration = configration;
         }
 
         public bool Equal(object property)
