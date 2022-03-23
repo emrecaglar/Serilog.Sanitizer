@@ -1,3 +1,4 @@
+﻿using Newtonsoft.Json;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
@@ -67,6 +68,174 @@ namespace Serilog.Sanitizer.Tests
             Assert.Equal("***", Cvv.ToString());
             Assert.False(properties.ContainsKey("ExpireMonth"));
             Assert.False(properties.ContainsKey("ExpireYear"));
+        }
+
+        [Fact]
+        public void SanitizeOnlyPrimitiveIsTrue_ShouldBe_SkipCardComplexType_SanitizeCreditCardPrimitiveProperty_When_SanitizeViaRegex()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .SanitizeViaRegex("fullName", x =>
+                                {
+                                    var items = x.Split(' ');
+
+                                    return $"{items[0].Substring(0, 2)}**** {items[1].Substring(0, 2)}****";
+                                }, ignoreCase: true)
+                                .SanitizeViaRegex("creditCard", "#### #### #### ####", ignoreCase: true, onlyPrimitive: true)
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = new
+            {
+                OrderNumber = Guid.NewGuid(),
+                FullName = "Sibel Çağlar",
+                CreatedAt = DateTime.Now,
+                CreditCard = new
+                {
+                    CreditCard = "4355084355084358",
+                    Cvv = "000",
+                    ExpireMonth = "12",
+                    ExpireYear = "2026"
+                }
+            };
+
+            logger.Information(
+                    "Sensitive Information {@p}",
+                    model
+            );
+
+            var cardNumberSanitized = (ScalarValue)((LogEventProperty[])((StructureValue)((LogEventProperty[])((StructureValue)events[0].Properties["p"]).Properties)[3].Value).Properties)[0].Value;
+
+            Assert.Equal("#### #### #### ####", cardNumberSanitized.Value.ToString());
+        }
+
+        [Fact]
+        public void SanitizeOnlyPrimitiveIsTrue_ShouldBe_SkipCardJsonType_SanitizeCreditCardPrimitiveProperty_When_SanitizeViaRegex()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .SanitizeViaRegex("fullName", x =>
+                                {
+                                    var items = x.Split(' ');
+
+                                    return $"{items[0].Substring(0, 2)}**** {items[1].Substring(0, 2)}****";
+                                }, ignoreCase: true)
+                                .SanitizeViaRegex("creditCard", "#### #### #### ####", ignoreCase: true, onlyPrimitive: true)
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(new
+            {
+                OrderNumber = Guid.NewGuid(),
+                FullName = "Sibel Çağlar",
+                CreatedAt = DateTime.Now,
+                CreditCard = new
+                {
+                    CreditCard = "4355084355084358",
+                    Cvv = "000",
+                    ExpireMonth = "12",
+                    ExpireYear = "2026"
+                }
+            }));
+
+            logger.Information(
+                    "Sensitive Information {@p}",
+                    model
+            );
+
+            var cardNumberSanitized = (ScalarValue)((LogEventProperty[])((StructureValue)((LogEventProperty[])((StructureValue)events[0].Properties["p"]).Properties)[3].Value).Properties)[0].Value;
+
+            Assert.Equal("#### #### #### ####", cardNumberSanitized.Value.ToString());
+        }
+
+        [Fact]
+        public void SanitizeOnlyPrimitiveIsTrue_ShouldBe_SkipCardComplexType_SanitizeCreditCardPrimitiveProperty_When_SanitizeProperty()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .Sanitize("fullName", x =>
+                                {
+                                    var items = x.Split(' ');
+
+                                    return $"{items[0].Substring(0, 2)}**** {items[1].Substring(0, 2)}****";
+                                }, ignoreCase: true)
+                                .Sanitize("creditCard", "#### #### #### ####", ignoreCase: true, onlyPrimitive: true)
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = new
+            {
+                OrderNumber = Guid.NewGuid(),
+                FullName = "Sibel Çağlar",
+                CreatedAt = DateTime.Now,
+                CreditCard = new
+                {
+                    CreditCard = "4355084355084358",
+                    Cvv = "000",
+                    ExpireMonth = "12",
+                    ExpireYear = "2026"
+                }
+            };
+
+            logger.Information(
+                    "Sensitive Information {@p}",
+                    model
+            );
+
+            var cardNumberSanitized = (ScalarValue)((LogEventProperty[])((StructureValue)((LogEventProperty[])((StructureValue)events[0].Properties["p"]).Properties)[3].Value).Properties)[0].Value;
+
+            Assert.Equal("#### #### #### ####", cardNumberSanitized.Value.ToString());
+        }
+
+        [Fact] 
+        public void SanitizeOnlyPrimitiveIsTrue_ShouldBe_SkipCardJsonType_SanitizeCreditCardPrimitiveProperty_When_SanitizeViaProperty()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .Sanitize("fullName", x =>
+                                {
+                                    var items = x.Split(' ');
+
+                                    return $"{items[0].Substring(0, 2)}**** {items[1].Substring(0, 2)}****";
+                                }, ignoreCase: true)
+                                .Sanitize("creditCard", "#### #### #### ####", ignoreCase: true, onlyPrimitive: true)
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(new
+            {
+                OrderNumber = Guid.NewGuid(),
+                FullName = "Sibel Çağlar",
+                CreatedAt = DateTime.Now,
+                CreditCard = new
+                {
+                    CreditCard = "4355084355084358",
+                    Cvv = "000",
+                    ExpireMonth = "12",
+                    ExpireYear = "2026"
+                }
+            }));
+
+            logger.Information(
+                    "Sensitive Information {@p}",
+                    model
+            );
+
+            var cardNumberSanitized = (ScalarValue)((LogEventProperty[])((StructureValue)((LogEventProperty[])((StructureValue)events[0].Properties["p"]).Properties)[3].Value).Properties)[0].Value;
+
+            Assert.Equal("#### #### #### ####", cardNumberSanitized.Value.ToString());
         }
 
         [Fact]

@@ -27,6 +27,13 @@ namespace Serilog.Sanitizer
             return this;
         }
 
+        public SanitizeConfiguration IgnoreProp(string[] props, bool onlyPrimitive = false)
+        {
+            _context.AddIgnoredProp(props, onlyPrimitive);
+
+            return this;
+        }
+
         public SanitizeConfiguration IgnoreProp(params string[] props)
         {
             _context.AddIgnoredProp(props);
@@ -35,69 +42,69 @@ namespace Serilog.Sanitizer
         }
 
 
-        public SanitizeConfiguration SanitizeViaRegex(string pattern, string value, bool ignoreCase = false)
+        public SanitizeConfiguration SanitizeViaRegex(string pattern, string value, bool ignoreCase = false, bool onlyPrimitive = false)
         {
-            _context.AddSanitizeViaRegex(pattern, value, ignoreCase);
+            _context.AddSanitizeViaRegex(pattern, value, ignoreCase, onlyPrimitive);
 
             return this;
         }
 
-        public SanitizeConfiguration SanitizeViaRegex(string pattern, Func<string, string> value, bool ignoreCase = false)
+        public SanitizeConfiguration SanitizeViaRegex(string pattern, Func<string, string> value, bool ignoreCase = false, bool onlyPrimitive = false)
         {
-            _context.AddSanitizeViaRegex(pattern, value, ignoreCase);
+            _context.AddSanitizeViaRegex(pattern, value, ignoreCase, onlyPrimitive);
 
             return this;
         }
 
-        public SanitizeConfiguration SanitizeViaRegex(string[] patterns, string value, bool ignoreCase = false)
+        public SanitizeConfiguration SanitizeViaRegex(string[] patterns, string value, bool ignoreCase = false, bool onlyPrimitive = false)
         {
             foreach (var pattern in patterns)
             {
-                _context.AddSanitizeViaRegex(pattern, value, ignoreCase);
+                _context.AddSanitizeViaRegex(pattern, value, ignoreCase, onlyPrimitive);
             }
 
             return this;
         }
 
-        public SanitizeConfiguration SanitizeViaRegex(string[] patterns, Func<string, string> value, bool ignoreCase = false)
+        public SanitizeConfiguration SanitizeViaRegex(string[] patterns, Func<string, string> value, bool ignoreCase = false, bool onlyPrimitive = false)
         {
             foreach (var pattern in patterns)
             {
-                _context.AddSanitizeViaRegex(pattern, value, ignoreCase);
+                _context.AddSanitizeViaRegex(pattern, value, ignoreCase, onlyPrimitive);
             }
 
             return this;
         }
 
-        public SanitizeConfiguration Sanitize(string prop, string value, bool ignoreCase = false)
+        public SanitizeConfiguration Sanitize(string prop, string value, bool ignoreCase = false, bool onlyPrimitive = false)
         {
-            _context.AddSanitizeProp(prop, value, ignoreCase);
+            _context.AddSanitizeProp(prop, value, ignoreCase, onlyPrimitive);
 
             return this;
         }
 
-        public SanitizeConfiguration Sanitize(string prop, Func<string, string> value, bool ignoreCase = false)
+        public SanitizeConfiguration Sanitize(string prop, Func<string, string> value, bool ignoreCase = false, bool onlyPrimitive = false)
         {
-            _context.AddSanitizeProp(prop, value, ignoreCase);
+            _context.AddSanitizeProp(prop, value, ignoreCase, onlyPrimitive);
 
             return this;
         }
 
-        public SanitizeConfiguration Sanitize(string[] props, string value, bool ignoreCase = false)
+        public SanitizeConfiguration Sanitize(string[] props, string value, bool ignoreCase = false, bool onlyPrimitive = false)
         {
             foreach (var prop in props)
             {
-                _context.AddSanitizeProp(prop, value, ignoreCase);
+                _context.AddSanitizeProp(prop, value, ignoreCase, onlyPrimitive);
             }
 
             return this;
         }
 
-        public SanitizeConfiguration Sanitize(string[] props, Func<string, string> value, bool ignoreCase = false)
+        public SanitizeConfiguration Sanitize(string[] props, Func<string, string> value, bool ignoreCase = false, bool onlyPrimitive = false)
         {
             foreach (var prop in props)
             {
-                _context.AddSanitizeProp(prop, value, ignoreCase);
+                _context.AddSanitizeProp(prop, value, ignoreCase, onlyPrimitive);
             }
 
             return this;

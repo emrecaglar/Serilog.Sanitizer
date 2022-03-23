@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog.Sanitizer.PropertyValueBuilder;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -19,7 +20,7 @@ namespace Serilog.Sanitizer.PropertyFinder
 
         public bool Equal(object property)
         {
-            if (property is PropertyInfo p)
+            if (property is PropertyInfo p && (!_configration.OnlyPrimitive || TypeUtil.IsBuiltinType(p.PropertyType)))
             {
                 return _property == p;
             }

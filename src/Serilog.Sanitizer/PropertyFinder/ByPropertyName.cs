@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Serilog.Events;
+using Serilog.Sanitizer.PropertyValueBuilder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,11 +27,17 @@ namespace Serilog.Sanitizer.PropertyFinder
         {
             if (property is JProperty jprop)
             {
-                return jprop.Name.Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
+                if (!_configration.OnlyPrimitive || jprop.First.Type != JTokenType.Object)
+                {
+                    return jprop.Name.Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
+                }
             }
             else if (property is PropertyInfo prop && (_value == null || (prop.DeclaringType == _value.GetType())))
             {
-                return prop.Name.Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
+                if (!_configration.OnlyPrimitive || TypeUtil.IsBuiltinType(prop.PropertyType))
+                {
+                    return prop.Name.Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
+                }
             }
             else if (property is string)
             {

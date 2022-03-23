@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Serilog.Events;
+using Serilog.Sanitizer.PropertyValueBuilder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,17 +27,23 @@ namespace Serilog.Sanitizer.PropertyFinder
         {
             if (property is JProperty jprop)
             {
-                return _regex.IsMatch(jprop.Name);
+                if (!_configration.OnlyPrimitive || jprop.First.Type != JTokenType.Object)
+                {
+                    return _regex.IsMatch(jprop.Name);
+                }
             }
             else if (property is PropertyInfo prop && (_value == null || (prop.DeclaringType == _value.GetType())))
             {
-                return _regex.IsMatch(prop.Name);
+                if (!_configration.OnlyPrimitive || TypeUtil.IsBuiltinType(prop.PropertyType))
+                {
+                    return _regex.IsMatch(prop.Name);
+                }
             }
             else if (property is string)
             {
                 return _regex.IsMatch(property.ToString());
             }
-            else if(property is KeyValuePair<string, LogEventPropertyValue> p)
+            else if (property is KeyValuePair<string, LogEventPropertyValue> p)
             {
                 return _regex.IsMatch(p.Key);
             }
