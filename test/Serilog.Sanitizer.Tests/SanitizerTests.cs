@@ -196,7 +196,7 @@ namespace Serilog.Sanitizer.Tests
             Assert.Equal("#### #### #### ####", cardNumberSanitized.Value.ToString());
         }
 
-        [Fact] 
+        [Fact]
         public void SanitizeOnlyPrimitiveIsTrue_ShouldBe_SkipCardJsonType_SanitizeCreditCardPrimitiveProperty_When_SanitizeViaProperty()
         {
             List<LogEvent> events = new List<LogEvent>();
@@ -474,6 +474,129 @@ namespace Serilog.Sanitizer.Tests
             Assert.Equal(model.Name, name.ToString());
             Assert.Equal(SANITIZE_PASSWORD, password.ToString());
         }
+
+        [Fact]
+        public void SanitizeViaExpression_ShouldBe_SanitizeArrayItems_When_Sanitize()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .Sanitize("Name", x => x.Substring(0, 2) + "****")
+                                .Sanitize("Surname", x => x.Substring(0, 2) + "****")
+                                .Sanitize("Phone", x => x.Substring(0, 2) + "****")
+                                .Sanitize("Email", x => x.Substring(0, 2) + "****")
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = new Department
+            {
+                DepartmentName = "IT",
+                Persons = new Person[]
+                {
+                    new Person{ Email = "abc@email.com", Name = "Person-1-Name",  Surname = "Person-1-Surname", Phone = "111111111", Code = "ABC123" },
+                    new Person{ Email = "def@email.com", Name = "Person-2-Name",  Surname = "Person-2-Surname", Phone = "222222222", Code = "DEF456" },
+                    new Person{ Email = "hij@email.com", Name = "Person-3-Name",  Surname = "Person-3-Surname", Phone = "333333333", Code = "HIJ789" },
+                }
+            };
+
+            logger.Information(
+                    "Sensitive Information {@department}",
+                    model
+            );
+
+            var modelProperties = ((StructureValue)events[0].Properties["department"]).Properties;
+
+            string departmentNameExpected = ((ScalarValue)modelProperties[0].Value).Value.ToString();
+
+            Assert.Equal(departmentNameExpected, model.DepartmentName);
+            Assert.All(((SequenceValue)modelProperties[1].Value).Elements, (item) =>
+            {
+                var obj = ((StructureValue)item);
+
+                var name = ((ScalarValue)obj.Properties[0].Value).Value.ToString();
+                var surname = ((ScalarValue)obj.Properties[1].Value).Value.ToString();
+                var phone = ((ScalarValue)obj.Properties[2].Value).Value.ToString();
+                var email = ((ScalarValue)obj.Properties[3].Value).Value.ToString();
+                var code = ((ScalarValue)obj.Properties[4].Value).Value.ToString();
+
+                var p = model.Persons.FirstOrDefault(x => x.Code == code);
+
+                Assert.Equal(email, p.Email.Substring(0, 2) + "****");
+                Assert.Equal(name, p.Name.Substring(0, 2) + "****");
+                Assert.Equal(surname, p.Surname.Substring(0, 2) + "****");
+                Assert.Equal(phone, p.Phone.Substring(0, 2) + "****");
+            });
+        }
+
+        [Fact]
+        public void SanitizeViaExpression_ShouldBe_SanitizeNestedArrayItems_When_Sanitize()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .Sanitize("Street", x => x.Substring(0, 5) + "****")
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = new Department
+            {
+                DepartmentName = "IT",
+                Persons = new Person[]
+                {
+                    new Person
+                    {
+                        Email = "abc@email.com",
+                        Name = "Person-1-Name",
+                        Surname = "Person-1-Surname",
+                        Phone = "111111111",
+                        Code = "ABC123",
+                        Addresses = new Address[]
+                        {
+                            new Address{ Description = "Home", City = "İstanbul", Street = "Fatih cad." },
+                            new Address{ Description = "Work", City = "İstanbul", Street = "Çiftehavuzlar mh." }
+                        }
+                    }
+                }
+            };
+
+            logger.Information(
+                    "Sensitive Information {@department}",
+                    model
+            );
+
+            var department = (StructureValue)events[0].Properties["department"];
+            var personArray = (SequenceValue)department.Properties[1].Value;
+
+            var person = (StructureValue)personArray.Elements[0];
+
+            var addressArray = (SequenceValue)person.Properties[5].Value;
+
+            Assert.All(addressArray.Elements, (address) =>
+            {
+                var item = (StructureValue)address;
+
+                var description = ((ScalarValue)item.Properties[0].Value).Value.ToString();
+                var city = ((ScalarValue)item.Properties[1].Value).Value.ToString();
+                var street = ((ScalarValue)item.Properties[2].Value).Value.ToString();
+
+                var a = model.Persons[0].Addresses.FirstOrDefault(x => x.Description == description);
+
+                Assert.Equal(description, a.Description);
+                Assert.Equal(city, a.City);
+                Assert.Equal(street, a.Street.Substring(0, 5) + "****");
+            });
+        }
+    }
+
+    class Department
+    {
+        public string DepartmentName { get; set; }
+
+        public Person[] Persons { get; set; }
     }
 
     class Person
@@ -485,6 +608,19 @@ namespace Serilog.Sanitizer.Tests
         public string Phone { get; set; }
 
         public string Email { get; set; }
+
+        public string Code { get; set; }
+
+        public Address[] Addresses { get; set; }
+    }
+
+    class Address
+    {
+        public string Description { get; set; }
+
+        public string City { get; set; }
+
+        public string Street { get; set; }
     }
 
     class Company

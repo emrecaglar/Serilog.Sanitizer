@@ -71,9 +71,16 @@ namespace Serilog.Sanitizer.PropertyValueBuilder.StructureObjectValueResolvers
                         }
                         else
                         {
-                            var valueResolver = _valueResolverFactory.CreatePropertyValueResolver(itemPropertyValue, (_depth + 1));
+                            if (_context.TryGetValue(enumerable, p, itemPropertyValue, out object sanitized))
+                            {
+                                structured.Add(new LogEventProperty(p.Name, new ScalarValue(sanitized)));
+                            }
+                            else
+                            {
+                                var valueResolver = _valueResolverFactory.CreatePropertyValueResolver(itemPropertyValue, (_depth + 1));
 
-                            structured.Add(new LogEventProperty(p.Name, valueResolver.GetValue(item)));
+                                structured.Add(new LogEventProperty(p.Name, valueResolver.GetValue(item)));
+                            }
                         }
                     }
 
