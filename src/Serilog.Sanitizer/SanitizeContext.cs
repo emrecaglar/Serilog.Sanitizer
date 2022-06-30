@@ -1,4 +1,5 @@
 ﻿using Serilog.Core;
+using Serilog.Debugging;
 using Serilog.Sanitizer.PropertyFinder;
 using System;
 using System.Collections.Generic;
@@ -43,77 +44,99 @@ namespace Serilog.Sanitizer
 
         public bool TryGetValue(Type model, object value, object property, object propertyValue, out object sanitized)
         {
-            List<SanitizeDefinition> list = null;
-
-            if (!ByModel.TryGetValue(model, out list))
+            try
             {
-                list = ByExpression;
+                List<SanitizeDefinition> list = null;
+
+                if (!ByModel.TryGetValue(model, out list))
+                {
+                    list = ByExpression;
+                }
+
+                var sanitizeDefinition = list.FirstOrDefault(x => x.Finder(value).Equal(property));
+
+                if (sanitizeDefinition == null)
+                {
+                    sanitized = null;
+                    return false;
+                }
+
+                var valueExpression = sanitizeDefinition.ValueExpression();
+
+                object sanitizeResult = null;
+
+                if (valueExpression is Func<string, string> sanitizeFunc)
+                {
+                    sanitizeResult = sanitizeFunc($"{propertyValue}");
+                }
+                else if (valueExpression is LambdaExpression lambdaExpression)
+                {
+                    sanitizeResult = lambdaExpression.Compile().DynamicInvoke(value);
+                }
+                else if (valueExpression is Delegate func)
+                {
+                    sanitizeResult = func.DynamicInvoke(value);
+                }
+                else if (valueExpression is string constantValue)
+                {
+                    sanitizeResult = constantValue;
+                }
+
+                sanitized = sanitizeResult;
+
+                return true;
             }
-
-            var sanitizeDefinition = list.FirstOrDefault(x => x.Finder(value).Equal(property));
-
-            if (sanitizeDefinition == null)
+            catch (Exception ex)
             {
-                sanitized = null;
-                return false;
-            }
+                SelfLog.WriteLine(ex.ToString());
 
-            var valueExpression = sanitizeDefinition.ValueExpression();
+                sanitized = "[sanitize error]";
 
-            object sanitizeResult = null;
-
-            if (valueExpression is Func<string, string> sanitizeFunc)
-            {
-                sanitizeResult = sanitizeFunc($"{propertyValue}");
+                return true;
             }
-            else if (valueExpression is LambdaExpression lambdaExpression)
-            {
-                sanitizeResult = lambdaExpression.Compile().DynamicInvoke(value);
-            }
-            else if (valueExpression is Delegate func)
-            {
-                sanitizeResult = func.DynamicInvoke(value);
-            }
-            else if (valueExpression is string constantValue)
-            {
-                sanitizeResult = constantValue;
-            }
-
-            sanitized = sanitizeResult;
-
-            return true;
         }
 
         public bool TryGetValue(object value, object property, object propertyValue, out object sanitized)
         {
-            var sanitizeDefinition = ByExpression.FirstOrDefault(x => x.Finder(value).Equal(property));
-
-            if (sanitizeDefinition == null)
+            try
             {
-                sanitized = null;
-                return false;
+                var sanitizeDefinition = ByExpression.FirstOrDefault(x => x.Finder(value).Equal(property));
+
+                if (sanitizeDefinition == null)
+                {
+                    sanitized = null;
+                    return false;
+                }
+
+                var valueExpression = sanitizeDefinition.ValueExpression();
+
+                object sanitizeResult = null;
+
+                if (valueExpression is Func<string, string> sanitizeFunc)
+                {
+                    sanitizeResult = sanitizeFunc($"{propertyValue}");
+                }
+                else if (valueExpression is LambdaExpression lambdaExpression)
+                {
+                    sanitizeResult = lambdaExpression.Compile().DynamicInvoke(value);
+                }
+                else if (valueExpression is string constantValue)
+                {
+                    sanitizeResult = constantValue;
+                }
+
+                sanitized = sanitizeResult;
+
+                return true;
             }
-
-            var valueExpression = sanitizeDefinition.ValueExpression();
-
-            object sanitizeResult = null;
-
-            if (valueExpression is Func<string, string> sanitizeFunc)
+            catch (Exception ex)
             {
-                sanitizeResult = sanitizeFunc($"{propertyValue}");
-            }
-            else if (valueExpression is LambdaExpression lambdaExpression)
-            {
-                sanitizeResult = lambdaExpression.Compile().DynamicInvoke(value);
-            }
-            else if (valueExpression is string constantValue)
-            {
-                sanitizeResult = constantValue;
-            }
+                sanitized = "[sanitize error]";
 
-            sanitized = sanitizeResult;
+                SelfLog.WriteLine(ex.ToString());
 
-            return true;
+                return true;
+            }
         }
 
         internal void AddIgnoredProp(string[] props, bool ignoreCase = false, bool onlyPrimitive = false)

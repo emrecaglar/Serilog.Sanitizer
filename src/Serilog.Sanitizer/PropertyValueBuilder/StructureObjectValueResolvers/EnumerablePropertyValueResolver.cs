@@ -65,7 +65,7 @@ namespace Serilog.Sanitizer.PropertyValueBuilder.StructureObjectValueResolvers
                         var itemPropertyValue = p.GetValue(item);
 
                         //block circular reference
-                        if (itemPropertyValue == parentObject)
+                        if (itemPropertyValue == null || itemPropertyValue == parentObject)
                         {
                             structured.Add(new LogEventProperty(p.Name, new ScalarValue(null)));
                         }
