@@ -3,6 +3,7 @@ using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using Xunit;
 
 namespace Serilog.Sanitizer.Tests
@@ -589,6 +590,56 @@ namespace Serilog.Sanitizer.Tests
                 Assert.Equal(city, a.City);
                 Assert.Equal(street, a.Street.Substring(0, 5) + "****");
             });
+        }
+
+        [Fact]
+        public void Sanitize_ShouldBe_Sanitize_When_SystemTextJsonDocument()
+        {
+            List<LogEvent> events = new List<LogEvent>();
+
+            var logger = new LoggerConfiguration()
+                            .Sanitizer()
+                                .Sanitize("Email", x => x.Substring(0, 3).PadRight(10, '*'))
+                            .Build()
+                            .WriteTo.Sink(new SerilogStubSink(events))
+                            .CreateLogger();
+
+            var model = new Department
+            {
+                DepartmentName = "IT",
+                Persons = new Person[]
+                {
+                    new Person
+                    {
+                        Email = "abc@email.com",
+                        Name = "Person-1-Name",
+                        Surname = "Person-1-Surname",
+                        Phone = "111111111",
+                        Code = "ABC123",
+                        Addresses = new Address[]
+                        {
+                            new Address{ Description = "Home", City = "İstanbul", Street = "Fatih cad." },
+                            new Address{ Description = "Work", City = "İstanbul", Street = "Çiftehavuzlar mh." }
+                        }
+                    }
+                }
+            };
+
+            var json = System.Text.Json.JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(model));
+
+            logger.Information(
+                    "Sensitive Information {@department}",
+                    json
+            );
+
+            var department = (StructureValue)events[0].Properties["department"];
+            var personArray = (SequenceValue)department.Properties[1].Value;
+
+            var person = (StructureValue)personArray.Elements[0];
+            var emailProperty = person.Properties.FirstOrDefault(x => x.Name == "Email");
+            string sanitizedVal = ((ScalarValue)emailProperty.Value).Value.ToString();
+
+            Assert.Equal(model.Persons[0].Email.Substring(0, 3).PadRight(10, '*'), sanitizedVal);
         }
     }
 

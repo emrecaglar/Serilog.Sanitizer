@@ -1,24 +1,18 @@
-﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace Serilog.Sanitizer.PropertyValueBuilder
 {
     public class DestructorLimits
     {
-        private int _maximumDestructuringDepth = 10;
-        private int _maximumStringLength = int.MaxValue;
-        private int _maximumCollectionCount = int.MaxValue;
+        private readonly int _maximumDestructuringDepth;
+        private readonly int _maximumStringLength;
+        private readonly int _maximumCollectionCount;
 
-        public DestructorLimits(int maximumDestructuringDepth, int maximumStringLength, int maximumCollectionCount)
+        public DestructorLimits(int? maximumDestructuringDepth, int? maximumStringLength, int? maximumCollectionCount)
         {
-            _maximumCollectionCount = maximumCollectionCount;
-            _maximumDestructuringDepth = maximumDestructuringDepth;
-            _maximumStringLength = maximumStringLength;
+            _maximumCollectionCount = maximumCollectionCount ?? int.MaxValue;
+            _maximumDestructuringDepth = maximumDestructuringDepth ?? 10;
+            _maximumStringLength = maximumStringLength ?? int.MaxValue;
         }
 
         public int MaximumStringLength { get { return _maximumStringLength; } }
@@ -38,9 +32,9 @@ namespace Serilog.Sanitizer.PropertyValueBuilder
             );
         }
 
-        private static int GetDestructingLimit(string fieldName, LoggerConfiguration loggerConfiguration)
+        private static int? GetDestructingLimit(string fieldName, LoggerConfiguration loggerConfiguration)
         {
-            return (int)typeof(LoggerConfiguration)
+            return (int?)typeof(LoggerConfiguration)
                            .GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance)
                            .GetValue(loggerConfiguration);
         }

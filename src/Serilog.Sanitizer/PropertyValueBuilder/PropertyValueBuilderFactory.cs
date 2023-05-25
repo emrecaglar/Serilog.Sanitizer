@@ -1,12 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 using Serilog.Events;
 using System.Collections.Generic;
-
-#if NETCOREAPP2_0_OR_GREATER
-using Microsoft.AspNetCore.Http;
-#endif
-
 using System.Collections.Specialized;
+using System.Text.Json;
 
 namespace Serilog.Sanitizer.PropertyValueBuilder
 {
@@ -27,17 +24,18 @@ namespace Serilog.Sanitizer.PropertyValueBuilder
             {
                 return new NullPropertyValueBuilder();
             }
-
+            if(value is JsonDocument || value is JsonElement)
+            {
+                return new SystemTextJsonObjectPropertyValueBuilder(this, _context, _destructorLimits);
+            }
             if (value is JToken)
             {
                 return new JTokenPropertyValueBuilder(this, _context, _destructorLimits);
             }
-#if NETCOREAPP2_0_OR_GREATER
             else if (value is IFormCollection)
             {
                 return new FormCollectionPropertyValueBuilder(this, _context, _destructorLimits);
             }
-#endif
             else if(value is NameValueCollection)
             {
                 return new NameValueCollectionPropertyValueBuilder(this, _context, _destructorLimits);

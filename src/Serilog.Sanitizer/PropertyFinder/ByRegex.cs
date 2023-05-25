@@ -1,12 +1,10 @@
 ﻿using Newtonsoft.Json.Linq;
 using Serilog.Events;
 using Serilog.Sanitizer.PropertyValueBuilder;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Serilog.Sanitizer.PropertyFinder
 {
@@ -25,6 +23,10 @@ namespace Serilog.Sanitizer.PropertyFinder
 
         public bool Equal(object property)
         {
+            if (property is JsonProperty jsonprop && (!_configration.OnlyPrimitive || jsonprop.Value.ValueKind != JsonValueKind.Object))
+            {
+                return _regex.IsMatch(jsonprop.Name);
+            }
             if (property is JProperty jprop)
             {
                 if (!_configration.OnlyPrimitive || jprop.First.Type != JTokenType.Object)

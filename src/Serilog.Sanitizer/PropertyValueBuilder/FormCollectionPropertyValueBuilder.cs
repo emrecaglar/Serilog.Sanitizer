@@ -1,8 +1,6 @@
-﻿#if NETCOREAPP2_0_OR_GREATER
-using Serilog.Events;
+﻿using Serilog.Events;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 
 namespace Serilog.Sanitizer.PropertyValueBuilder
 {
@@ -53,4 +51,3 @@ namespace Serilog.Sanitizer.PropertyValueBuilder
         }
     }
 }
-#endif

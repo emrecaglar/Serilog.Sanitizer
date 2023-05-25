@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Serilog.Sanitizer.PropertyFinder
 {
@@ -25,7 +23,7 @@ namespace Serilog.Sanitizer.PropertyFinder
             {
                 return _predicate(pi);
             }
-            else if (property is PropertyInfo p)
+            else if (_value != null && property is PropertyInfo p)
             {
                 var founded = _value.GetType().GetRuntimeProperties().FirstOrDefault(_predicate);
 

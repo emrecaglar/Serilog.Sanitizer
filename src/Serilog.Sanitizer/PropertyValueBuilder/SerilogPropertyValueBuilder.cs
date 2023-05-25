@@ -1,15 +1,11 @@
 ﻿using Serilog.Events;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Serilog.Sanitizer.PropertyValueBuilder
 {
     public class SerilogPropertyValueBuilder : IPropertyValueBuilder
     {
-        private SanitizeContext _context;
+        private readonly SanitizeContext _context;
         
         public SerilogPropertyValueBuilder(SanitizeContext context)
         {
@@ -27,14 +23,14 @@ namespace Serilog.Sanitizer.PropertyValueBuilder
 
                 var property = (KeyValuePair<string, LogEventPropertyValue>)value;
 
-                if(property.Value is ScalarValue)
+                if(property.Value is ScalarValue sv)
                 {
-                    if (_context.TryGetValue(property, property.Key, ((ScalarValue)property.Value).Value, out object sanitized))
+                    if (_context.TryGetValue(property, property.Key, sv.Value, out object sanitized))
                     {
                         return new ScalarValue(sanitized);
                     }
 
-                    return (ScalarValue)property.Value;
+                    return sv;
                 }
 
                 return property.Value;

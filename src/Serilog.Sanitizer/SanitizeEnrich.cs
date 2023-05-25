@@ -12,8 +12,8 @@ namespace Serilog.Sanitizer
 {
     public class SanitizeEnrich : ILogEventEnricher
     {
-        private SanitizeContext _context;
-        private LoggerConfiguration _loggerConfiguration;
+        private readonly SanitizeContext _context;
+        private readonly LoggerConfiguration _loggerConfiguration;
 
         public SanitizeEnrich(SanitizeContext context, LoggerConfiguration loggerConfiguration)
         {

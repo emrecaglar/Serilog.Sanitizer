@@ -3,10 +3,8 @@ using Serilog.Events;
 using Serilog.Sanitizer.PropertyValueBuilder;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Serilog.Sanitizer.PropertyFinder
 {
@@ -25,6 +23,10 @@ namespace Serilog.Sanitizer.PropertyFinder
 
         public bool Equal(object property)
         {
+            if (property is JsonProperty jsonprop && (!_configration.OnlyPrimitive || jsonprop.Value.ValueKind != JsonValueKind.Object))
+            {
+                return jsonprop.Name.Equals(_propertyName, _configration.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.CurrentCulture);
+            }
             if (property is JProperty jprop)
             {
                 if (!_configration.OnlyPrimitive || jprop.First.Type != JTokenType.Object)

@@ -9,8 +9,8 @@ namespace Serilog.Sanitizer
 {
     public class SanitizeType<TModel>
     {
-        private SanitizeContext _context;
-        private SanitizeConfiguration _sanitizeConfiguration;
+        private readonly SanitizeContext _context;
+        private readonly SanitizeConfiguration _sanitizeConfiguration;
 
         public SanitizeType(SanitizeContext context, SanitizeConfiguration sanitizeConfiguration)
         {
