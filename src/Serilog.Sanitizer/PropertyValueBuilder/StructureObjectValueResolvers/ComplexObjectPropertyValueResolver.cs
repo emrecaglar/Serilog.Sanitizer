@@ -59,6 +59,15 @@ namespace Serilog.Sanitizer.PropertyValueBuilder.StructureObjectValueResolvers
                     {
                         var propertyValue = property.GetValue(_value);
 
+                        if (propertyValue is Task asyncTask)
+                        {
+                            asyncTask.GetAwaiter().GetResult();
+
+                            propertyValue = asyncTask.GetType()
+                                                     .GetProperty("Result")
+                                                    ?.GetValue(propertyValue);
+                        }
+
                         var valueResolver = _valueResolverFactory.CreatePropertyValueResolver(propertyValue, (_depth + 1));
 
                         structureProperties.Add(new LogEventProperty(property.Name, valueResolver.GetValue(_value)));
